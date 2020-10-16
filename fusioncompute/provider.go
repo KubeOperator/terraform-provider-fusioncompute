@@ -32,6 +32,7 @@ func Provider() *schema.Provider {
 			"fusioncompute_datastore": dataSourceFusionComputeDatastore(),
 			"fusioncompute_vm":        dataSourceFusionComputeVm(),
 			"fusioncompute_dvswitch":  dataSourceFusionComputeDVSwitch(),
+			"fusioncompute_portgroup": dataSourceFusionComputePortGroup(),
 		},
 	}
 }
