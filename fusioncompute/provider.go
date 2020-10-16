@@ -1,6 +1,9 @@
 package fusioncompute
 
-import "github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+import (
+	"github.com/KubeOperator/FusionComputeGolangSDK/pkg/client"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+)
 
 func Provider() *schema.Provider {
 	return &schema.Provider{
@@ -34,5 +37,18 @@ func Provider() *schema.Provider {
 			"fusioncompute_dvswitch":  dataSourceFusionComputeDVSwitch(),
 			"fusioncompute_portgroup": dataSourceFusionComputePortGroup(),
 		},
+		ConfigureFunc: providerConfigure,
 	}
+}
+
+func providerConfigure(d *schema.ResourceData) (interface{}, error) {
+	server := d.Get("server").(string)
+	user := d.Get("user").(string)
+	password := d.Get("password").(string)
+	c := client.NewFusionComputeClient(server, user, password)
+	err := c.Connect()
+	if err != nil {
+		return nil, err
+	}
+	return c, nil
 }
