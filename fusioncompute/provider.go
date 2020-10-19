@@ -37,6 +37,9 @@ func Provider() *schema.Provider {
 			"fusioncompute_dvswitch":  dataSourceFusionComputeDVSwitch(),
 			"fusioncompute_portgroup": dataSourceFusionComputePortGroup(),
 		},
+		ResourcesMap: map[string]*schema.Resource{
+			"fusioncompute_vm": resourceFusionComputeVm(),
+		},
 		ConfigureFunc: providerConfigure,
 	}
 }

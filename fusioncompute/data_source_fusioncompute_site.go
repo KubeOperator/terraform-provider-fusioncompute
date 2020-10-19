@@ -38,7 +38,6 @@ func dataSourceFusionComputeSiteRead(d *schema.ResourceData, meta interface{}) e
 	if result == nil {
 		return errors.New(fmt.Sprintf("site: %s not exists", siteName))
 	}
-	uri := result.Uri
-	d.SetId(uri)
+	d.SetId(result.Uri)
 	return nil
 }

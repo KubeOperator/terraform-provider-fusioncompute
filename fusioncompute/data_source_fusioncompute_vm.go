@@ -44,7 +44,6 @@ func dataSourceFusionComputeVmRead(d *schema.ResourceData, meta interface{}) err
 	if result == nil {
 		return errors.New(fmt.Sprintf("site: %s not exists", vmName))
 	}
-	uri := result.Uri
-	d.SetId(uri)
+	d.SetId(result.Uri)
 	return nil
 }
