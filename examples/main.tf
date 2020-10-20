@@ -1,7 +1,7 @@
 provider "fusioncompute" {
-  user = "kubeoperator"
-  password = "Calong@2015"
-  server = "https://100.199.16.208:7443"
+  user = ""
+  password = ""
+  server = ""
 }
 
 data "fusioncompute_site" "site" {
