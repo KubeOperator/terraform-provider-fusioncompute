@@ -36,9 +36,9 @@ func dataSourceFusionComputeVmRead(d *schema.ResourceData, meta interface{}) err
 		return errors.New(fmt.Sprintf("error fetching vm:%s", err))
 	}
 	var result *vm.Vm
-	for _, v := range vms {
-		if v.Name == vmName {
-			result = &v
+	for i := range vms {
+		if vms[i].Name == vmName {
+			result = &vms[i]
 		}
 	}
 	if result == nil {

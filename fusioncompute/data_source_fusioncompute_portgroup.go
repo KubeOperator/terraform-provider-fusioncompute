@@ -42,9 +42,9 @@ func dataSourceFusionComputePortGroupRead(d *schema.ResourceData, meta interface
 		return errors.New(fmt.Sprintf("error fetching vm:%s", err))
 	}
 	var result *network.PortGroup
-	for _, v := range portGroups {
-		if v.Name == portGroupName {
-			result = &v
+	for i := range portGroups {
+		if portGroups[i].Name == portGroupName {
+			result = &portGroups[i]
 		}
 	}
 	if result == nil {

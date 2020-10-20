@@ -36,9 +36,9 @@ func dataSourceFusionComputeClusterRead(d *schema.ResourceData, meta interface{}
 		return errors.New(fmt.Sprintf("error fetching site:%s", err))
 	}
 	var result *cluster.Cluster
-	for _, c := range clusters {
-		if c.Name == clusterName {
-			result = &c
+	for i := range clusters {
+		if clusters[i].Name == clusterName {
+			result = &clusters[i]
 		}
 	}
 	if result == nil {

@@ -6,6 +6,7 @@ import (
 	"github.com/KubeOperator/FusionComputeGolangSDK/pkg/task"
 	"github.com/KubeOperator/FusionComputeGolangSDK/pkg/vm"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"log"
 	"strings"
 	"time"
 )
@@ -18,7 +19,7 @@ func resourceFusionComputeVm() *schema.Resource {
 		},
 		"timeout": {
 			Type:     schema.TypeInt,
-			Required: false,
+			Optional: true,
 		},
 		"num_cpus": {
 			Type:     schema.TypeInt,
@@ -85,6 +86,10 @@ func resourceFusionComputeVm() *schema.Resource {
 					Type:     schema.TypeString,
 					Optional: true,
 				},
+				"ipv4_gateway": {
+					Type:     schema.TypeString,
+					Optional: true,
+				},
 				"network_interface": {
 					Type:     schema.TypeList,
 					Optional: true,
@@ -105,13 +110,11 @@ func resourceFusionComputeVm() *schema.Resource {
 		},
 	}
 	return &schema.Resource{
-		Schema:       s,
-		Read:         resourceFusionComputeVmRead,
-		Update:       nil,
-		Create:       resourceFusionComputeCreate,
-		Delete:       nil,
-		Importer:     nil,
-		MigrateState: nil,
+		Schema: s,
+		Read:   resourceFusionComputeVmRead,
+		Update: resourceFusionComputeUpdate,
+		Create: resourceFusionComputeCreate,
+		Delete: resourceFusionComputeDelete,
 	}
 }
 
@@ -138,36 +141,41 @@ func resourceFusionComputeCreate(d *schema.ResourceData, meta interface{}) error
 		},
 		VmCustomization: vm.Customization{},
 	}
-	for i, di := range d.Get("disk").([]map[string]interface{}) {
+	log.Println(d.Get("disk"))
+	for i, di := range d.Get("disk").([]interface{}) {
+		di := di.(map[string]interface{})
 		req.Config.Disks = append(req.Config.Disks, vm.Disk{
-			SequenceNum:  i,
+			SequenceNum:  i + 1,
 			QuantityGB:   di["size"].(int),
 			IsDataCopy:   false,
 			DatastoreUrn: fusioncomputeUriToUrn(d.Get("datastore_uri").(string)),
 			IsThin:       true,
 		})
 	}
-	for _, ni := range d.Get("network_interface").([]map[string]interface{}) {
+	for _, ni := range d.Get("network_interface").([]interface{}) {
+		ni := ni.(map[string]interface{})
 		req.Config.Nics = append(req.Config.Nics, vm.Nic{
 			PortGroupUrn: fusioncomputeUriToUrn(ni["portgroup_uri"].(string)),
 		})
 	}
-	ccs := d.Get("customize").([]map[string]interface{})
+	ccs := d.Get("customize").([]interface{})
+	firstCcs := ccs[0].(map[string]interface{})
 	if len(ccs) > 0 {
-		hostname := ccs[0]["host_name"].(string)
+		hostname := firstCcs["host_name"].(string)
 		req.VmCustomization = vm.Customization{
 			OsType:   "Linux",
 			Hostname: hostname,
 		}
-		networkCcs := ccs[0]["network_interface"].([]map[string]interface{})
+		networkCcs := firstCcs["network_interface"].([]interface{})
 		for i, nccs := range networkCcs {
+			nccs := nccs.(map[string]interface{})
 			req.VmCustomization.NicSpecification = append(req.VmCustomization.NicSpecification, vm.NicSpecification{
-				SequenceNum: i,
+				SequenceNum: i + 1,
 				Ip:          nccs["ipv4_address"].(string),
 				Netmask:     nccs["ipv4_netmask"].(string),
-				Gateway:     ccs[0]["ipv4_gateway"].(string),
-				Setdns:      ccs[0]["set_dns"].(string),
-				Adddns:      ccs[0]["add_dns"].(string),
+				Gateway:     firstCcs["ipv4_gateway"].(string),
+				Setdns:      firstCcs["set_dns"].(string),
+				Adddns:      firstCcs["add_dns"].(string),
 			})
 		}
 	}
@@ -175,8 +183,8 @@ func resourceFusionComputeCreate(d *schema.ResourceData, meta interface{}) error
 	if err != nil {
 		return err
 	}
+	d.SetId(resp.Uri)
 	timeout := d.Get("timeout").(int)
-
 	tm := task.NewManager(c, siteUri)
 	n := 0
 	for {
@@ -192,7 +200,7 @@ func resourceFusionComputeCreate(d *schema.ResourceData, meta interface{}) error
 		}
 		time.Sleep(5 * time.Second)
 	}
-	return nil
+	return resourceFusionComputeVmRead(d, meta)
 }
 
 func resourceFusionComputeVmRead(d *schema.ResourceData, meta interface{}) error {
@@ -201,6 +209,38 @@ func resourceFusionComputeVmRead(d *schema.ResourceData, meta interface{}) error
 	if err != nil {
 		return err
 	}
+	id := d.Id()
+	siteUri := d.Get("site_uri").(string)
+	vmm := vm.NewManager(c, siteUri)
+	_, err = vmm.GetVM(id)
+	if err != nil {
+		return err
+	}
+	//err = d.Set("vm_meta", v)
+	//if err != nil {
+	//	return err
+	//}
+	return nil
+}
+
+func resourceFusionComputeDelete(d *schema.ResourceData, meta interface{}) error {
+	c := meta.(client.FusionComputeClient)
+	err := c.Connect()
+	if err != nil {
+		return err
+	}
+	id := d.Id()
+	siteUri := d.Get("site_uri").(string)
+	vmm := vm.NewManager(c, siteUri)
+	err = vmm.DeleteVm(id)
+	if err != nil {
+		return err
+	}
+	return nil
+
+}
+
+func resourceFusionComputeUpdate(d *schema.ResourceData, meta interface{}) error {
 	return nil
 }
 

@@ -36,9 +36,9 @@ func dataSourceFusionComputeDVSwitchRead(d *schema.ResourceData, meta interface{
 		return errors.New(fmt.Sprintf("error fetching vm:%s", err))
 	}
 	var result *network.DVSwitch
-	for _, v := range vSwitchs {
-		if v.Name == vSwitchName {
-			result = &v
+	for i := range vSwitchs {
+		if vSwitchs[i].Name == vSwitchName {
+			result = &vSwitchs[i]
 		}
 	}
 	if result == nil {

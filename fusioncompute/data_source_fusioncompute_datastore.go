@@ -36,9 +36,9 @@ func dataSourceFusionComputeDatastoreRead(d *schema.ResourceData, meta interface
 		return errors.New(fmt.Sprintf("error fetching site:%s", err))
 	}
 	var result *storage.Datastore
-	for _, d := range datastores {
-		if d.Name == datastoreName {
-			result = &d
+	for i := range datastores {
+		if datastores[i].Name == datastoreName {
+			result = &datastores[i]
 		}
 	}
 	if result == nil {

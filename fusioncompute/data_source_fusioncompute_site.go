@@ -30,9 +30,9 @@ func dataSourceFusionComputeSiteRead(d *schema.ResourceData, meta interface{}) e
 		return errors.New(fmt.Sprintf("error fetching site:%s", err))
 	}
 	var result *site.Site
-	for _, s := range sites {
-		if s.Name == siteName {
-			result = &s
+	for i := range sites {
+		if sites[i].Name == siteName {
+			result = &sites[i]
 		}
 	}
 	if result == nil {
