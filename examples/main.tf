@@ -1,7 +1,7 @@
 provider "fusioncompute" {
-  user = "kubeoperator"
-  password = "Calong@2015"
-  server = "https://100.199.16.208:8443"
+  user = ""
+  password = ""
+  server = ""
 }
 
 data "fusioncompute_site" "site" {
@@ -9,63 +9,55 @@ data "fusioncompute_site" "site" {
 }
 
 data "fusioncompute_cluster" "cluster" {
-  name = ""
-  site_uri = "data.fusioncompute_site.site.id"
+  name = "ManagementCluster"
+  site_uri = data.fusioncompute_site.site.id
 }
-
 data "fusioncompute_dvswitch" "dvswitch" {
-  name = ""
-  site_uri = "data.fusioncompute_site.site.id"
+  name = "ManagementDVS"
+  site_uri = data.fusioncompute_site.site.id
 }
-
 data "fusioncompute_portgroup" "portgroup" {
-  name = ""
-  dvswitch_uri = "data.fusioncompute_dvswitch.dvswitch.id"
-  site_uri = "data.fusioncompute_site.site.id"
+  name = "managePortgroup"
+  dvswitch_uri = data.fusioncompute_dvswitch.dvswitch.id
+  site_uri = data.fusioncompute_site.site.id
 }
 
 data "fusioncompute_datastore" "datastore" {
-  name = ""
-  site_uri = "data.fusioncompute_site.site.id"
+  name = "Storage"
+  site_uri = data.fusioncompute_site.site.id
 }
 
 data "fusioncompute_vm" "template" {
-  name = ""
-  site_uri = "data.fusioncompute_site.site.id"
+  name = "CentOS7.6-template"
+  site_uri = data.fusioncompute_site.site.id
 }
 
+
 resource "fusioncompute_vm" "test" {
-  name = ""
-
+  name = "aaabbb"
   timeout = 30
-
-
   num_cpus = 2
   memory = 1024
-
-  site_uri = "data.fusioncompute_site.site.id"
-  cluster_uri = "data.fusioncompute_cluster.cluster.id"
-  datastore_uri = "data.fusioncompute_datastore.datastore.id"
-
-
-  template_uri = "data.fusioncompute_vm.template.id"
-
+  site_uri = data.fusioncompute_site.site.id
+  cluster_uri = data.fusioncompute_cluster.cluster.id
+  datastore_uri = data.fusioncompute_datastore.datastore.id
+  template_uri = data.fusioncompute_vm.template.id
   network_interface {
-    portgroup_uri = "data.fusioncompute_portgroup.portgroup.id"
+    portgroup_uri = data.fusioncompute_portgroup.portgroup.id
   }
   disk {
     size = 50
     thin = true
   }
   customize {
-    host_name = ""
+    host_name = "aaaa"
     network_interface {
-      ipv4_address = ""
-      ipv4_netmask = ""
+      ipv4_address = "100.199.10.88"
+      ipv4_netmask = "255.255.255.0"
     }
-    ipv4_gateway = ""
-    set_dns = ""
-    add_dns = ""
+    ipv4_gateway = "100.199.10.0"
+    set_dns = "8.8.8.8"
+    add_dns = "114.114.114.114"
   }
 }
 
