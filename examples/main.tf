@@ -1,7 +1,7 @@
 provider "fusioncompute" {
-  user = ""
-  password = ""
-  server = ""
+  user = "kubeoperator"
+  password = "Calong@2015"
+  server = "https://100.199.16.208:7443"
 }
 
 data "fusioncompute_site" "site" {
@@ -34,7 +34,7 @@ data "fusioncompute_vm" "template" {
 
 
 resource "fusioncompute_vm" "test" {
-  name = "aaabbb"
+  name = "test1"
   timeout = 30
   num_cpus = 2
   memory = 1024
@@ -60,4 +60,3 @@ resource "fusioncompute_vm" "test" {
     add_dns = "114.114.114.114"
   }
 }
-

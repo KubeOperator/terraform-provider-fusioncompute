@@ -37,7 +37,7 @@ func dataSourceFusionComputePortGroupRead(d *schema.ResourceData, meta interface
 	siteUri := d.Get("site_uri").(string)
 	dvSwitchUri := d.Get("dvswitch_uri").(string)
 	m := network.NewManager(c, siteUri)
-	portGroups, err := m.ListPortGroup(dvSwitchUri)
+	portGroups, err := m.ListPortGroupBySwitch(dvSwitchUri)
 	if err != nil {
 		return errors.New(fmt.Sprintf("error fetching vm:%s", err))
 	}

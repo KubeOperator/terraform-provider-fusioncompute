@@ -6,7 +6,6 @@ import (
 	"github.com/KubeOperator/FusionComputeGolangSDK/pkg/task"
 	"github.com/KubeOperator/FusionComputeGolangSDK/pkg/vm"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	"log"
 	"strings"
 	"time"
 )
@@ -141,7 +140,6 @@ func resourceFusionComputeCreate(d *schema.ResourceData, meta interface{}) error
 		},
 		VmCustomization: vm.Customization{},
 	}
-	log.Println(d.Get("disk"))
 	for i, di := range d.Get("disk").([]interface{}) {
 		di := di.(map[string]interface{})
 		req.Config.Disks = append(req.Config.Disks, vm.Disk{
@@ -198,6 +196,7 @@ func resourceFusionComputeCreate(d *schema.ResourceData, meta interface{}) error
 		if 5*n >= timeout*60 {
 			return errors.New("create vm timeout")
 		}
+		n++
 		time.Sleep(5 * time.Second)
 	}
 	return resourceFusionComputeVmRead(d, meta)
@@ -216,10 +215,6 @@ func resourceFusionComputeVmRead(d *schema.ResourceData, meta interface{}) error
 	if err != nil {
 		return err
 	}
-	//err = d.Set("vm_meta", v)
-	//if err != nil {
-	//	return err
-	//}
 	return nil
 }
 
@@ -232,12 +227,29 @@ func resourceFusionComputeDelete(d *schema.ResourceData, meta interface{}) error
 	id := d.Id()
 	siteUri := d.Get("site_uri").(string)
 	vmm := vm.NewManager(c, siteUri)
-	err = vmm.DeleteVm(id)
+	resp, err := vmm.DeleteVm(id)
 	if err != nil {
 		return err
 	}
+	tm := task.NewManager(c, siteUri)
+	timeout := d.Get("timeout").(int)
+	// wait for delete
+	n := 0
+	for {
+		t, err := tm.Get(resp.TaskUri)
+		if err != nil {
+			return err
+		}
+		if t.Progress == 100 {
+			break
+		}
+		if 5*n >= timeout*60 {
+			return errors.New("delete vm timeout")
+		}
+		n++
+		time.Sleep(5 * time.Second)
+	}
 	return nil
-
 }
 
 func resourceFusionComputeUpdate(d *schema.ResourceData, meta interface{}) error {
