@@ -159,7 +159,7 @@ func resourceFusionComputeCreate(d *schema.ResourceData, meta interface{}) error
 	ccs := d.Get("customize").([]interface{})
 	firstCcs := ccs[0].(map[string]interface{})
 	if len(ccs) > 0 {
-		hostname := firstCcs["host_name"].(string)
+		hostname := "node"
 		req.VmCustomization = vm.Customization{
 			OsType:   "Linux",
 			Hostname: hostname,
