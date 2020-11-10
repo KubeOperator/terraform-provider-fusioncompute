@@ -199,6 +199,27 @@ func resourceFusionComputeCreate(d *schema.ResourceData, meta interface{}) error
 		n++
 		time.Sleep(5 * time.Second)
 	}
+	// wait for network
+	for i := 0; i < 60; i++ {
+		v, err := m.GetVM(resp.Uri)
+		if err != nil {
+			return err
+		}
+		exit := false
+		if len(v.VmConfig.Nics) > 0 {
+			for _, vn := range v.VmConfig.Nics {
+				if vn.Ip != "" && vn.Ip != "0.0.0.0" {
+					exit = true
+					break
+				}
+			}
+		}
+		if exit {
+			break
+		}
+		time.Sleep(10 * time.Second)
+	}
+
 	return resourceFusionComputeVmRead(d, meta)
 }
 
